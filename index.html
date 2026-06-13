@@ -1,41 +1,165 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <title>Verifikasi Sertifikat</title>
-    <meta name="description" content="">
-
-    <link rel="manifest" href="/manifest.json">
-
-    <link rel="icon" type="image/jpeg" href="https://valdoc.vercel.app/valid.png">
-    <link rel="shortcut icon" type="image/jpeg" href=""https://valdoc.vercel.app/valid.png">
-    <link rel="apple-touch-icon" href=""https://valdoc.vercel.app/valid.png">
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#0d9488">
+    <base target="_top">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+        rel="stylesheet">
 
     <style>
-        /* CSS yang sudah diperbaiki agar full screen */
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            width: 100%;
-            overflow: hidden; 
-            background-color: #f1f5f9; 
-        }
-        iframe { 
-            display: block; 
-            width: 100%; 
-            height: 100%; 
-            border: none; 
+        body {
+            font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
-<body>
-    <iframe src="https://script.google.com/macros/s/AKfycbwgeOwRA9KDZ0QnHwYoXHuZ6ElB6-Wl6y45LwXGC0b-_1LkZTWgO4rg_iN0CL64mH5HOQ/exec"></iframe>
+
+<body class="bg-blue-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-8 rounded-xl shadow-lg max-w-lg w-full z-10 relative">
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-blue-800">Cetak & Validasi Dokumen</h2>
+            <p class="text-sm text-gray-500">Divisi Tahfidz PP Sains Salman Assalam</p>
+        </div>
+
+        <!-- Area Pencarian -->
+        <div id="searchSection">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Masukkan No Dokumen</label>
+                <input type="text" id="inputNoSertifikat" placeholder="Contoh: TFDZ-001"
+                    class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-500">
+            </div>
+            <button onclick="cekValidasi()" id="btnCek"
+                class="w-full py-3 px-4 rounded-md shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition">
+                Cari & Cetak Dokumen
+            </button>
+            <div id="errorMsg" class="mt-4 text-center text-sm text-red-600 hidden font-semibold bg-red-50 p-2 rounded">
+            </div>
+        </div>
+
+        <!-- Area Hasil (Disembunyikan di awal) -->
+        <div id="resultSection" class="hidden mt-6 pt-6 border-t border-gray-200">
+            <div
+                class="flex items-center justify-center mb-4 text-green-500 bg-green-50 w-16 h-16 rounded-full mx-auto">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h3 class="text-center text-xl font-bold text-gray-800 mb-4">Data Valid!</h3>
+
+            <div class="bg-gray-50 p-4 rounded-lg space-y-2 mb-6 text-sm border border-gray-200">
+                <p><span class="font-semibold text-gray-500">No. Dokumen:</span> <span id="resNo"
+                        class="text-gray-900 font-medium float-right"></span></p>
+                <p><span class="font-semibold text-gray-500">Nama:</span> <span id="resNama"
+                        class="text-gray-900 font-medium float-right text-right"></span></p>
+                <p><span class="font-semibold text-gray-500">Kelas:</span> <span id="resKelas"
+                        class="text-gray-900 font-medium float-right"></span></p>
+                <p><span class="font-semibold text-gray-500">Hafalan:</span> <span id="resHafalan"
+                        class="text-gray-900 font-medium float-right"></span></p>
+                <p class="pt-2 border-t mt-2 border-gray-200"><span class="font-semibold text-gray-500">Jenis
+                        Dokumen:</span> <span id="resJenis" class="font-bold float-right"></span></p>
+            </div>
+
+            <button id="btnDownload"
+                class="w-full flex justify-center py-3 px-4 rounded-md shadow-md text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition mb-3">
+                Lihat / Download Dokumen
+            </button>
+            <button onclick="resetSearch()"
+                class="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                Kembali
+            </button>
+        </div>
+    </div>
+
+
+
+    <script>
+        console.log("Script Validasi termuat sepenuhnya tanpa error pemotongan.");
+
+
+        let globalData = null;
+
+        const tgl = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.querySelectorAll('.tanggalToday').forEach(el => el.innerText = tgl);
+
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwgeOwRA9KDZ0QnHwYoXHuZ6ElB6-Wl6y45LwXGC0b-_1LkZTWgO4rg_iN0CL64mH5HOQ/exec';
+
+        async function cekValidasi() {
+            const input = document.getElementById('inputNoSertifikat').value.trim();
+            if (!input) return alert('Silakan masukkan nomor dokumen');
+
+            const btn = document.getElementById('btnCek');
+            const err = document.getElementById('errorMsg');
+
+            btn.innerText = 'Mencari Data...'; btn.disabled = true;
+            err.classList.add('hidden');
+
+            try {
+                // Menggunakan GET Request untuk menghindari kendala CORS bawaan browser saat fetch ke Google Apps Script
+                const response = await fetch(`${API_URL}?action=cariValidasi&noSertifikat=${encodeURIComponent(input)}`);
+                const res = await response.json();
+
+                btn.innerText = 'Cari & Cetak Dokumen'; btn.disabled = false;
+                
+                if (res.status === 'ditemukan') {
+                    globalData = res;
+                    tampilkanHasil(res.santri);
+                } else if (res.status === 'tidak_ditemukan') {
+                    err.innerText = 'Nomor tidak ditemukan di database.';
+                    err.classList.remove('hidden');
+                } else {
+                    err.innerText = 'Error Server: ' + (res.pesan || 'Gagal memproses data');
+                    err.classList.remove('hidden');
+                }
+            } catch (error) {
+                btn.innerText = 'Cari & Cetak Dokumen'; btn.disabled = false;
+                err.innerText = 'Gagal terhubung ke Server API! Error: ' + error.message;
+                err.classList.remove('hidden');
+            }
+        }
+
+        function tampilkanHasil(santri) {
+            document.getElementById('searchSection').classList.add('hidden');
+            document.getElementById('resultSection').classList.remove('hidden');
+
+            document.getElementById('resNo').innerText = santri.noSertifikat;
+            document.getElementById('resNama').innerText = santri.nama + (santri.binBinti ? ` (Bin/Binti ${santri.binBinti})` : '');
+            document.getElementById('resKelas').innerText = santri.kelas;
+            document.getElementById('resHafalan').innerText = santri.hafalan;
+
+            const isSertif = santri.kelas.includes('6');
+            const textJenis = isSertif ? 'Sertifikat Tahfidz' : 'Surat Keterangan';
+            document.getElementById('resJenis').innerText = textJenis;
+
+            if (isSertif) {
+                document.getElementById('resJenis').className = 'font-bold float-right text-green-600';
+            } else {
+                document.getElementById('resJenis').className = 'font-bold float-right text-yellow-600';
+            }
+
+            const btnDl = document.getElementById('btnDownload');
+            if (santri.linkDokumen) {
+                btnDl.onclick = function() { window.open(santri.linkDokumen, '_blank'); };
+                btnDl.innerText = 'Lihat / Download Dokumen';
+                btnDl.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+                btnDl.classList.add('bg-green-600', 'hover:bg-green-700');
+                btnDl.disabled = false;
+            } else {
+                btnDl.innerText = 'Dokumen Belum Diupload';
+                btnDl.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+                btnDl.classList.remove('bg-green-600', 'hover:bg-green-700');
+                btnDl.disabled = true;
+            }
+        }
+
+        function resetSearch() {
+            document.getElementById('inputNoSertifikat').value = '';
+            document.getElementById('searchSection').classList.remove('hidden');
+            document.getElementById('resultSection').classList.add('hidden');
+            globalData = null;
+        }
+    </script>
 </body>
+
 </html>
