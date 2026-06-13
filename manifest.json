@@ -1,20 +1,20 @@
 {
   "name": "Verfikasi Sertifikat",
   "short_name": "Verfikasi Sertifikat",
-  "start_url": "https://Valdoc.vercel.app/",
+  "start_url": "https://valdoc.vercel.app/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0d9488",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://Valdoc.vercel.app/Valid.png",
+      "src": "https://valdoc.vercel.app/valid.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://Valdoc.vercel.app/Valid.png",
+      "src": "https://valdoc.vercel.app/valid.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
